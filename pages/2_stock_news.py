@@ -15,7 +15,7 @@ import newspaper
 import nltk
 import time
 
-key = "G5O2ZIhaZExN4D04fphejimYOduuPfoK"
+key = st.secrets["polygon_key"]
 POLYGON_TICKER_DETAILS_V3 = 'https://api.polygon.io/v3/reference/tickers/{}?apiKey={}'
 POLYGON_TICKER_NEWS = 'https://api.polygon.io/v2/reference/news?ticker={}&limit=100&apiKey={}'
 
@@ -23,7 +23,7 @@ def get_news(stock):
     """
     """
 
-    key = "0a9cfccc02264d8aabb3d83a58cc38df"
+    key = st.secrets["newsapi_key"]
     category ="business"
     fr_date = (datetime.now() - relativedelta(months=+1)).strftime("%Y-%m-%d")
     to_date = datetime.now().strftime("%Y-%m-%d")
@@ -98,8 +98,6 @@ def display_webapp():
             comp_name = get_ref_data(stock)
 
         st.header(comp_name)
-
-        dashboard_select = st.selectbox("which dashboard?", ('Chart', 'News'))
 
         try:
             with st.expander("Company Description"):

@@ -366,8 +366,6 @@ def display_webapp():
 
         st.header(comp_name)
 
-        dashboard_select = st.selectbox("which dashboard?", ('Chart', 'News'))
-
         try:
             with st.expander("Company Description"):
                 st.write(description)

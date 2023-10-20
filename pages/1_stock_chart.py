@@ -15,7 +15,7 @@ import newspaper
 import nltk
 import time
 
-key = st.secrets["key"]
+key = st.secrets["polygon_key"]
 POLYGON_TICKER_DETAILS_V3 = 'https://api.polygon.io/v3/reference/tickers/{}?apiKey={}'
 POLYGON_TICKER_NEWS = 'https://api.polygon.io/v2/reference/news?ticker={}&limit=100&apiKey={}'
 

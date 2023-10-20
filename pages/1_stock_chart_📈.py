@@ -282,8 +282,6 @@ def display_webapp():
         except:
             comp_name = get_ref_data(stock)
 
-        st.header(comp_name)
-
         try:
             with st.expander("Company Description"):
                 st.write(description)

@@ -57,49 +57,6 @@ def get_aggregates(stock, st_date, en_date):
 
     return AggData
 
-def get_news(stock):
-    """
-    """
-
-    key = "0a9cfccc02264d8aabb3d83a58cc38df"
-    category ="business"
-    fr_date = (datetime.now() - relativedelta(months=+1)).strftime("%Y-%m-%d")
-    to_date = datetime.now().strftime("%Y-%m-%d")
-    NEWS_API = 'https://newsapi.org/v2/everything?q={}&language=en&from={}&to={}&sortBy=publishedAt&apiKey={}'
-
-    session = requests.Session()
-    r = session.get(NEWS_API.format(stock, fr_date, to_date, key))
-    news_data = r.json()
-
-    articles = news_data['articles']
-
-    news_list = []
-
-    for i in range(len(articles)):
-        source = articles[i]['source']['name']
-        title = articles[i]['title']
-        description = articles[i]['description']
-        url = articles[i]['url']
-        image = articles[i]['urlToImage']
-        date_published = articles[i]['publishedAt']
-        content = articles[i]['content']
-
-        dict1 = {'source': source,
-                'title': title,
-                'description': description,
-                'url': url,
-                'image': image,
-                'date_published': date_published,
-                'content': content}
-
-        news = pd.DataFrame(dict1, index=[0])
-        news_list.append(news)
-
-    news_df = pd.concat(news_list)
-    news_df = news_df.reset_index()
-
-    return news_df
-
 def get_ref_data(stock):
 
     """
@@ -341,11 +298,16 @@ def display_webapp():
         SMA2 = st.number_input("SMA2", value=252)
         st.divider()
 
-    #1. Gets aggregate data
-
-    start_date = (datetime.now() - relativedelta(years=+5)).strftime("%Y-%m-%d")
+    metric_container = st.container()
+    with metric_container:
+        c1, c2 = st.columns(2)
+        c1.header(stock + "-" + comp_name)
+        c2.metric(label = "price", value = agg_data['closing_price'][-1], delta = agg_data['daily_return'][-1].round(1))
+    
     button_container = st.container()
     with button_container:
+        start_date = (datetime.now() - relativedelta(years=+5)).strftime("%Y-%m-%d")
+        end_date = datetime.now().strftime("%Y-%m-%d")
         oneMbt, sixMbt, oneYbt, fiveYbt, blank = st.columns([0.1, 0.1, 0.1, 0.1, 0.6], gap="small")
 
         if oneMbt.button('1M'):
@@ -357,7 +319,6 @@ def display_webapp():
         if fiveYbt.button('5Y'):
             start_date = (datetime.now() - relativedelta(years=+5)).strftime("%Y-%m-%d")
 
-    end_date = datetime.now().strftime("%Y-%m-%d")
     agg_data = get_aggregates(stock, start_date, end_date)
 
     #Strategy 1 - Simple Moving Average Strategy
@@ -375,9 +336,7 @@ def display_webapp():
 
     chart_container = st.container()
     with chart_container:
-        c1, c2 = st.columns(2)
-        c1.header(stock + "-" + comp_name)
-        c2.metric(label = "price", value = agg_data['closing_price'][-1], delta = agg_data['daily_return'][-1].round(1))
+
 
         agg_chart = create_agg_chart(agg_data, comp_name)
         volume_chart = create_volume_chart(agg_data)

@@ -317,9 +317,8 @@ def display_webapp():
     agg_data = get_aggregates(stock, start_date, end_date)
 
     with metric_container:
-        c1, c2 = st.columns(2)
-        c1.header(stock + " - " + comp_name)
-        c2.metric(label = "price", value = agg_data['closing_price'][-1], delta = agg_data['daily_return'][-1].round(1))
+        st.header(stock + " - " + comp_name)
+        st.metric(label = "price", value = agg_data['closing_price'][-1], delta = agg_data['daily_return'][-1].round(1))
     
     #Strategy 1 - Simple Moving Average Strategy
     #A. Get sma_data signals

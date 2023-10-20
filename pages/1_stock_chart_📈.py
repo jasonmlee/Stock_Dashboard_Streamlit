@@ -299,12 +299,9 @@ def display_webapp():
         st.divider()
 
     metric_container = st.container()
-    with metric_container:
-        c1, c2 = st.columns(2)
-        c1.header(stock + "-" + comp_name)
-        c2.metric(label = "price", value = agg_data['closing_price'][-1], delta = agg_data['daily_return'][-1].round(1))
-    
     button_container = st.container()
+    chart_container = st.container()
+    
     with button_container:
         start_date = (datetime.now() - relativedelta(years=+5)).strftime("%Y-%m-%d")
         end_date = datetime.now().strftime("%Y-%m-%d")
@@ -321,6 +318,11 @@ def display_webapp():
 
     agg_data = get_aggregates(stock, start_date, end_date)
 
+    with metric_container:
+        c1, c2 = st.columns(2)
+        c1.header(stock + "-" + comp_name)
+        c2.metric(label = "price", value = agg_data['closing_price'][-1], delta = agg_data['daily_return'][-1].round(1))
+    
     #Strategy 1 - Simple Moving Average Strategy
     #A. Get sma_data signals
     sma_signals = get_sma_signals(agg_data, SMA1, SMA2)
@@ -334,10 +336,8 @@ def display_webapp():
 
     #3. Display Chart
 
-    chart_container = st.container()
+    
     with chart_container:
-
-
         agg_chart = create_agg_chart(agg_data, comp_name)
         volume_chart = create_volume_chart(agg_data)
         return_chart = create_return_chart(return_data)

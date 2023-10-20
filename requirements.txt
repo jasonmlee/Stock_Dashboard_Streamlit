@@ -1,0 +1,5 @@
+polygon-api-client
+newsapi-python
+GoogleNews
+newspaper3k
+pandas-ta

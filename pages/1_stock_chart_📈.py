@@ -313,45 +313,6 @@ def create_return_chart(return_data):
 
     return c1+c2
 
-def date_logic(date_option):
-    """
-    Sets the logic for how the start and end dates are set.
-    """
-
-    #date_option_list = ['1D', '5D', '1M', '6M', 'YTD', '1Y', '5Y']
-    current_dateTime = datetime.now()
-    current_month = current_dateTime.month
-
-    end_date = current_dateTime.strftime("%Y-%m-%d")
-
-    if date_option == "1D":
-        start_date = (current_dateTime - timedelta(days=1)).strftime("%Y-%m-%d")
-        return start_date, end_date
-
-    elif date_option == "5D":
-        start_date = (current_dateTime - timedelta(days=5)).strftime("%Y-%m-%d")
-        return start_date, end_date
-
-    elif date_option == "1M":
-        start_date = (current_dateTime - relativedelta(months=+1)).strftime("%Y-%m-%d")
-        return start_date, end_date
-
-    elif date_option == "6M":
-        start_date = (current_dateTime - relativedelta(months=+6)).strftime("%Y-%m-%d")
-        return start_date, end_date
-
-    elif date_option == "YTD":
-        start_date = (current_dateTime - relativedelta(months=current_month)).strftime("%Y-%m-%d")
-        return start_date, end_date
-
-    elif date_option == "1Y":
-        start_date = (current_dateTime - relativedelta(years=+1)).strftime("%Y-%m-%d")
-        return start_date, end_date
-
-    elif date_option == "5Y":
-        start_date = (current_dateTime - relativedelta(years=+5)).strftime("%Y-%m-%d")
-        return start_date, end_date
-
 def display_webapp():
     st.set_page_config(page_title="stock chart", page_icon="📈")
 
@@ -372,16 +333,6 @@ def display_webapp():
         except:
             None
 
-        st.markdown("***")
-
-        #Date Options
-        date_option_list = ['5Y','1D', '5D', '1M', '6M', 'YTD', '1Y']
-        date_option = st.selectbox("select date", date_option_list, index=0)
-        start_date, end_date = date_logic(date_option)
-
-        st.divider()
-
-        initial_capital = st.number_input('Initial Capital', value = 100000)
         st.divider()
 
         SMA1 = st.number_input("SMA1", value=40)
@@ -391,6 +342,22 @@ def display_webapp():
         st.divider()
 
     #1. Gets aggregate data
+
+    start_date = (datetime.now() - relativedelta(years=+5)).strftime("%Y-%m-%d")
+    button_container = st.container()
+    with button_container:
+        oneMbt, sixMbt, oneYbt, fiveYbt, blank = st.columns([0.1, 0.1, 0.1, 0.1, 0.6], gap="small")
+
+        if oneMbt.button('1M'):
+            start_date = (datetime.now() - relativedelta(months=+1)).strftime("%Y-%m-%d")
+        if sixMbt.button('6M'):
+            start_date = (datetime.now() - relativedelta(months=+6)).strftime("%Y-%m-%d")
+        if oneYbt.button('1Y'):
+            start_date = (datetime.now() - relativedelta(years=+1)).strftime("%Y-%m-%d")
+        if fiveYbt.button('5Y'):
+            start_date = (datetime.now() - relativedelta(years=+5)).strftime("%Y-%m-%d")
+
+    end_date = datetime.now().strftime("%Y-%m-%d")
     agg_data = get_aggregates(stock, start_date, end_date)
 
     #Strategy 1 - Simple Moving Average Strategy
@@ -402,11 +369,12 @@ def display_webapp():
     trading_signals, position = generate_sma_trading_signals(sma_signals)
 
     #C. Get return data
-    return_data = get_return_data(agg_data, position, initial_capital)
+    return_data = get_return_data(agg_data, position, 100000) #initial_capital is fixed at $100000
 
     #3. Display Chart
-    
-    with st.container():
+
+    chart_container = st.container()
+    with chart_container:
         c1, c2 = st.columns(2)
         c1.header(stock + "-" + comp_name)
         c2.metric(label = "price", value = agg_data['closing_price'][-1], delta = agg_data['daily_return'][-1].round(1))

@@ -318,7 +318,7 @@ def display_webapp():
 
     with metric_container:
         st.header(stock + " - " + comp_name)
-        st.metric(label = "price", value = str(agg_data['closing_price'][-1]) + "$", delta = str(agg_data['daily_return'][-1].round(1) * 100) + "%")
+        st.metric(label = "price", value = "$" + str(agg_data['closing_price'][-1]), delta = str(agg_data['daily_return'][-1].round(1) * 100) + "%")
     
     #Strategy 1 - Simple Moving Average Strategy
     #A. Get sma_data signals

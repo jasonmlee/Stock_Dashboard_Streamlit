@@ -107,27 +107,25 @@ def display_webapp():
         except:
             None
 
-        st.markdown("***")
+        st.divider()
 
-        news_data = get_news(stock)
-        st.header("Latest News")
+    news_data = get_news(stock)
+    st.header("Latest News")
 
-        for i in range(len(news_data)):
-            col1, col2, col3 = st.columns(3)
-            with st.container():
-                url = news_data['url'][i]
-                date = news_data['date_published'][i]
-                source = news_data['source'][i]
-                title = news_data['title'][i]
-                image = news_data['image'][i]
+    for i in range(len(news_data)):
+        col1, col2, col3 = st.columns(3)
+        with st.container():
+            url = news_data['url'][i]
+            date = news_data['date_published'][i]
+            source = news_data['source'][i]
+            title = news_data['title'][i]
+            image = news_data['image'][i]
 
-                col1.write(source)
-                col2.write(title + " [link](%s)" % url)
-                col3.image(image)
-                st.divider()
+            col1.write(source)
+            col2.write(title + " [link](%s)" % url)
+            col3.image(image)
+            st.divider()
 
-    else:
-        return None
     return None
 
 display_webapp()

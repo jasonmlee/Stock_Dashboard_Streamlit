@@ -131,6 +131,7 @@ def get_heat_map_data():
     ticker_list = index_df['Ticker'].to_list()
     delta_df = get_delta(key)
     market_cap_df = get_market_cap(ticker_list, key)
+    color_bin = [-100,-2,-1,0, 1, 2,100]
 
     heat_map_df = index_df.merge(delta_df, on ='Ticker', how='left')
     heat_map_df = heat_map_df.merge(market_cap_df, on ='Ticker', how='left')
@@ -157,5 +158,6 @@ def display_webapp():
     st.write("Market Overview")
     st.sidebar.success("Select a demo above.")
     st.plotly_chart(create_heat_map("SP500"))
+    return None
 
 display_webapp()

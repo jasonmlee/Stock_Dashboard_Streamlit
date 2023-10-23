@@ -157,3 +157,5 @@ def display_webapp():
     st.write("Market Overview")
     st.sidebar.success("Select a demo above.")
     st.plotly_chart(create_heat_map("SP500"))
+
+display_webapp()

@@ -4,3 +4,6 @@ GoogleNews
 newspaper3k
 pandas-ta
 bs4
+aiohttp
+asyncio
+nest_asyncio

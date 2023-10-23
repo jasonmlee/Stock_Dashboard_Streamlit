@@ -9,7 +9,6 @@ import altair as alt
 import streamlit as st
 import numpy as np
 import math
-import seaborn as sns
 from bs4 import BeautifulSoup
 import aiohttp
 import asyncio

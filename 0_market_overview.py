@@ -82,7 +82,7 @@ def get_delta(key):
 
     for i in np.arange(len(data['tickers'])):
         ticker = data['tickers'][i]['ticker']
-        delta = data['tickers'][i]['todaysChangePerc']
+        delta = data['tickers'][i]['todaysChangePerc'] / 100
         dict1 = {'Ticker': ticker, 'Delta': delta}
         df = pd.DataFrame(dict1, index = [0])
         ls.append(df)

@@ -3,3 +3,4 @@ newsapi-python
 GoogleNews
 newspaper3k
 pandas-ta
+bs4

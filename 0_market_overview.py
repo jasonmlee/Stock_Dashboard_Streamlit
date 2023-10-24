@@ -7,6 +7,7 @@ import requests
 import pandas as pd
 import altair as alt
 import streamlit as st
+import streamlit_extras
 import numpy as np
 import math
 from bs4 import BeautifulSoup

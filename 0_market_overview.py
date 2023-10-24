@@ -158,8 +158,14 @@ def create_heat_map(indx):
 def display_webapp():
     st.set_page_config(page_title="Dashboard", page_icon="👋")
     st.header("Market Overview")
+
     st.sidebar.success("Select a demo above.")
+
+    progress_text = "Operation in progress. Please wait."
+    my_bar = st.progress(0, text=progress_text)
     st.plotly_chart(create_heat_map("SP500"), use_container_width=True)
+    my_bar.empty()
+    
     return None
 
 display_webapp()

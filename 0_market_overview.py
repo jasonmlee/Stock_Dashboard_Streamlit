@@ -128,7 +128,7 @@ def get_market_cap(ticker_list, key):
 
 def get_heat_map_data():
     index_df = get_index_constituents()
-    ticker_list = index_df['Ticker'].to_list()
+    ticker_list = index_df['Ticker'].unique()
     delta_df = get_delta(key)
     market_cap_df = get_market_cap(ticker_list, key)
     color_bin = [-100,-2,-1,0, 1, 2,100]
@@ -146,11 +146,12 @@ def create_heat_map(indx):
     heat_map_df = heat_map_df[heat_map_df['Index'] == indx]
 
     fig = px.treemap(heat_map_df, path=[px.Constant("all"), 'GICS Sector','Ticker'], values = 'Market_cap', color='Colors',
-                 color_discrete_map ={'(?)':'#262931', 'red':'red', 'indianred':'indianred','lightpink':'lightpink', 'lightgreen':'lightgreen','lime':'lime','green':'green'},
-
-                hover_data = {'Delta':':.2p'}
+                     color_discrete_map ={'(?)':'#262931', 'red':'red', 'indianred':'indianred','lightpink':'lightpink', 'lightgreen':'lightgreen','lime':'lime','green':'green'},
+                     hover_data = {'Delta':':.2p'},
+                     custom_data = ['Company', 'Delta']
                 )
-    #fig.show()
+    fig.update_traces(marker=dict(cornerradius=2),
+                      texttemplate = "%{label}<br>%{customdata[0]}<br>%{customdata[1]:.2p}")
     return fig
 
 def display_webapp():

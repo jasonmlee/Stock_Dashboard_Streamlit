@@ -7,6 +7,7 @@ import requests
 import pandas as pd
 import altair as alt
 import streamlit as st
+import streamlit-extras
 import numpy as np
 import math
 from newsapi import NewsApiClient
@@ -321,6 +322,7 @@ def display_webapp():
         price, price_change = st.columns(2)
         price.metric(label = "price", value = "$" + str(agg_data['closing_price'][-1]), delta = str(round(agg_data['daily_return'][-1] * 100, 2)) + "%")
         price_change.metric(label = "price change", value = round(agg_data['closing_price'].diff()[-1], 2))
+        style_metric_cards()
     
     #Strategy 1 - Simple Moving Average Strategy
     #A. Get sma_data signals
@@ -334,8 +336,6 @@ def display_webapp():
     return_data = get_return_data(agg_data, position, 100000) #initial_capital is fixed at $100000
 
     #3. Display Chart
-
-    
     with chart_container:
         agg_chart = create_agg_chart(agg_data, comp_name)
         volume_chart = create_volume_chart(agg_data)

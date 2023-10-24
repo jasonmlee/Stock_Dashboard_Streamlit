@@ -14,6 +14,7 @@ import aiohttp
 import asyncio
 import nest_asyncio
 import plotly.express as px
+import time
 nest_asyncio.apply()
 
 key = st.secrets["polygon_key"]
@@ -92,11 +93,12 @@ def get_delta(key):
     all_tickers = all_tickers.drop(columns = ['index'])
     return all_tickers
 
-results = []
+
 async def mc_api_call(ticker_list, key):
     """
     Uses Async to loop through the reference details endpoint. Returns a Json response
     """
+    results = []
     REF_V3 = 'https://api.polygon.io/v3/reference/tickers/{}?apiKey={}'
     session = aiohttp.ClientSession()
     tasks = [session.get(REF_V3.format(ticker, key)) for ticker in ticker_list]
@@ -142,6 +144,7 @@ def create_heat_map(indx):
     """
     Either input DJIA, SP500, Nasdaq as indx
     """
+    
     heat_map_df = get_heat_map_data()
     heat_map_df = heat_map_df[heat_map_df['Index'] == indx]
 
@@ -153,19 +156,18 @@ def create_heat_map(indx):
                 )
     fig.update_traces(marker=dict(cornerradius=2),
                       texttemplate = "%{label}<br>%{customdata[0]}<br>%{customdata[1]:.2p}")
+
+    
     return fig
 
 def display_webapp():
     st.set_page_config(page_title="Dashboard", page_icon="👋")
     st.header("Market Overview")
-
+    st.spinner(text="In progress...")
     st.sidebar.success("Select a demo above.")
-
-    progress_text = "Operation in progress. Please wait."
-    my_bar = st.progress(0, text=progress_text)
     st.plotly_chart(create_heat_map("SP500"), use_container_width=True)
-    my_bar.empty()
-    
+    st.success('Done!')
+
     return None
 
 display_webapp()

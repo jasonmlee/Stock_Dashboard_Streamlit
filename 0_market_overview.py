@@ -148,6 +148,7 @@ def create_heat_map(indx):
     fig = px.treemap(heat_map_df, path=[px.Constant("all"), 'GICS Sector','Ticker'], values = 'Market_cap', color='Colors',
                      color_discrete_map ={'(?)':'#262931', 'red':'red', 'indianred':'indianred','lightpink':'lightpink', 'lightgreen':'lightgreen','lime':'lime','green':'green'},
                      hover_data = {'Delta':':.2p'},
+                     width=1000, height=1000,
                      custom_data = ['Company', 'Delta']
                 )
     fig.update_traces(marker=dict(cornerradius=2),

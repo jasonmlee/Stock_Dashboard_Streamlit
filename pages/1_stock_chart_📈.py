@@ -322,7 +322,7 @@ def display_webapp():
         price, price_change = st.columns(2)
         price.metric(label = "price", value = "$" + str(agg_data['closing_price'][-1]), delta = str(round(agg_data['daily_return'][-1] * 100, 2)) + "%")
         price_change.metric(label = "price change", value = round(agg_data['closing_price'].diff()[-1], 2))
-        style_metric_cards(background_color = "#808080", border_color = "#000000")
+        #style_metric_cards(background_color = "#808080", border_color = "#000000")
     
     #Strategy 1 - Simple Moving Average Strategy
     #A. Get sma_data signals

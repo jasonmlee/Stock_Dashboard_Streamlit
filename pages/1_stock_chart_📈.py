@@ -7,7 +7,7 @@ import requests
 import pandas as pd
 import altair as alt
 import streamlit as st
-import streamlit_extras
+from streamlit_extras.metric_cards import style_metric_cards
 import numpy as np
 import math
 from newsapi import NewsApiClient
@@ -322,7 +322,7 @@ def display_webapp():
         price, price_change = st.columns(2)
         price.metric(label = "price", value = "$" + str(agg_data['closing_price'][-1]), delta = str(round(agg_data['daily_return'][-1] * 100, 2)) + "%")
         price_change.metric(label = "price change", value = round(agg_data['closing_price'].diff()[-1], 2))
-        streamlit_extras.style_metric_cards()
+        style_metric_cards()
     
     #Strategy 1 - Simple Moving Average Strategy
     #A. Get sma_data signals

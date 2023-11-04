@@ -231,19 +231,19 @@ def display_webapp():
         try:
             st.subheader("Market Cap: " + f"{numerize.numerize(market_cap)} " + f"{currency.upper()}")
         except:
-            None
+            st.write("")
         #eps = get_financial_data(stock)
         #st.subheader("P/E Ratio: " + f"{agg_data['close'].iloc[-1]/ eps}")
         try:
             st.subheader("Number of Employees: " + f"{numerize.numerize(total_employees)}")
         except:
-            None
+            st.write("")
             
         try:
             with st.expander("Company Description"):
                 st.write(description)
         except:
-            None
+            st.write("")
 
     st.header(f"{stock}" + " - " + str(round(agg_data['close'][-1],2)))
     price_difference_day, price_difference_yoy, week_high, week_low = st.columns(4)

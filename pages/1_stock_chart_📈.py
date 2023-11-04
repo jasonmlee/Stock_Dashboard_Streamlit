@@ -230,7 +230,7 @@ def display_webapp():
         except:
             comp_name = get_ref_data(stock)
 
-        st.subheader("Security: "comp_name)
+        st.subheader("Security: " + comp_name)
         try:
             st.subheader("Market Cap: " + f"{numerize.numerize(market_cap)} " + f"{currency.upper()}")
         except:

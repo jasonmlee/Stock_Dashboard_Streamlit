@@ -9,3 +9,4 @@ asyncio
 nest_asyncio
 plotly
 streamlit-extras
+numerize

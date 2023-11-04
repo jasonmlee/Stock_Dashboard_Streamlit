@@ -231,12 +231,13 @@ def display_webapp():
         try:
             st.subheader("Market Cap: " + f"{numerize.numerize(market_cap)} " + f"{currency.upper()}")
         except:
-            
+            None
         #eps = get_financial_data(stock)
         #st.subheader("P/E Ratio: " + f"{agg_data['close'].iloc[-1]/ eps}")
         try:
             st.subheader("Number of Employees: " + f"{numerize.numerize(total_employees)}")
         except:
+            None
             
         try:
             with st.expander("Company Description"):

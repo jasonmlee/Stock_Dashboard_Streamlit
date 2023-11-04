@@ -228,12 +228,16 @@ def display_webapp():
             comp_name = get_ref_data(stock)
 
         st.header(comp_name)
-        st.subheader("Market Cap: " + f"{numerize.numerize(market_cap)} " + f"{currency.upper()}")
-
+        try:
+            st.subheader("Market Cap: " + f"{numerize.numerize(market_cap)} " + f"{currency.upper()}")
+        except:
+            
         #eps = get_financial_data(stock)
         #st.subheader("P/E Ratio: " + f"{agg_data['close'].iloc[-1]/ eps}")
-        st.subheader("Number of Employees: " + f"{numerize.numerize(total_employees)}")
-
+        try:
+            st.subheader("Number of Employees: " + f"{numerize.numerize(total_employees)}")
+        except:
+            
         try:
             with st.expander("Company Description"):
                 st.write(description)

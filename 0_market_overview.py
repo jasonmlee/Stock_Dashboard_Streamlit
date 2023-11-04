@@ -23,7 +23,6 @@ DJIA = 'https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average'
 SPY = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
 QQQ = 'https://en.wikipedia.org/wiki/Nasdaq-100#Components'
 
-
 def get_index_constituents():
 
     with requests.Session() as session:
@@ -94,7 +93,6 @@ def get_delta(key):
     all_tickers = all_tickers.drop(columns = ['index'])
     return all_tickers
 
-
 async def mc_api_call(ticker_list, key):
     """
     Uses Async to loop through the reference details endpoint. Returns a Json response
@@ -152,13 +150,12 @@ def create_heat_map(indx):
     fig = px.treemap(heat_map_df, path=[px.Constant("all"), 'GICS Sector','Ticker'], values = 'Market_cap', color='Colors',
                      color_discrete_map ={'(?)':'#262931', 'red':'red', 'indianred':'indianred','lightpink':'lightpink', 'lightgreen':'lightgreen','lime':'lime','green':'green'},
                      hover_data = {'Delta':':.2p'},
-                     width=800, height=800,
+                     width=700, height=700,
                      custom_data = ['Company', 'Delta']
                 )
     fig.update_traces(marker=dict(cornerradius=2),
                       texttemplate = "%{label}<br>%{customdata[0]}<br>%{customdata[1]:.2p}")
 
-    
     return fig
 
 def display_webapp():
@@ -166,7 +163,6 @@ def display_webapp():
     st.header("Market Overview")
     st.sidebar.success("Select a demo above.")
     st.plotly_chart(create_heat_map("SP500"), use_container_width=True)
-
     return None
 
 display_webapp()

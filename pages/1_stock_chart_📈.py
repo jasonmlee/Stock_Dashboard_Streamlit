@@ -74,9 +74,12 @@ def get_ref_data(stock):
         market_cap = data['results']['market_cap']
         description = data['results']['description']
         homepage_url = data['results']['homepage_url']
-        icon = data['results']['branding']['icon_url']
+        currency = data['results']['currency_name']
+        sic_code = data['results']['sic_code']
+        total_employees = data['results']['total_employees']
+        weighted_shares_outstanding = data['results']['weighted_shares_outstanding']
 
-        return comp_name, market_cap, description, homepage_url, icon
+        return comp_name, market_cap, description, homepage_url, total_employees, currency, weighted_shares_outstanding
 
     except:
         comp_name = data['results']['name']

@@ -7,7 +7,6 @@ import requests
 import pandas as pd
 import altair as alt
 import streamlit as st
-from streamlit_extras.metric_cards import style_metric_cards
 import numpy as np
 import math
 from newsapi import NewsApiClient
@@ -15,6 +14,10 @@ from GoogleNews import GoogleNews
 import newspaper
 import nltk
 import time
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import pandas_ta as ta
+from numerize import numerize
 
 key = st.secrets["polygon_key"]
 POLYGON_TICKER_DETAILS_V3 = 'https://api.polygon.io/v3/reference/tickers/{}?apiKey={}'
@@ -59,11 +62,9 @@ def get_aggregates(stock, st_date, en_date):
     return AggData
 
 def get_ref_data(stock):
-
     """
     Makes Polygon.io API call to retreive reference data
     """
-
     session = requests.Session()
     r = session.get(POLYGON_TICKER_DETAILS_V3.format(stock, key))
     data = r.json()
@@ -81,207 +82,157 @@ def get_ref_data(stock):
         comp_name = data['results']['name']
         return comp_name
 
-def get_sma_signals(agg_data, SMA1, SMA2):
+def get_financial_data(stock):
     """
-    Creates a dataframe that stores the SMA signals
+    Makes Polygon.io API call to retreive financial data
     """
+    session = requests.Session()
+    r = session.get(POLYGON_FINANCIALS.format(stock, key))
+    data = r.json()
+    eps = data['results'][0]['financials']['income_statement']['diluted_earnings_per_share']['value']
+    return eps
 
-    signals = pd.DataFrame(index = agg_data.index)
-    #signals['signal'] = 0
-
-    signals['closing_price'] = agg_data['closing_price']
-    signals['SMA1'] = agg_data['closing_price'].rolling(SMA1).mean()
-    signals['SMA2'] = agg_data['closing_price'].rolling(SMA2).mean()
-
-    #signals = clean_data(signals)
-    #signals = melt_data(signals, "SMA1", "SMA2")
-
-    return signals
-
-def clean_data(data):
+def create_chart(agg_data):
     """
-    Drops all NaN values and resets the index of the DataFrame
-    """
-    clean_data = data.dropna()
-    clean_data = clean_data.reset_index()
-    return clean_data
-
-def melt_data(data, var1, var2, variable_name, value_name):
-    """
-    Uses pd.melt to convert dataset into wide format
-    """
-    melt_data = pd.melt(data.reset_index(), id_vars= ['date'], value_vars=[var1, var2])
-    melt_data = melt_data.rename(columns={'variable': variable_name, 'value': value_name})
-    return melt_data
-
-def generate_sma_trading_signals(data):
+    Uses plotly to create chart
     """
 
-    """
+    df = agg_data.reset_index()
+    sma_50 = df.ta.sma(length=50) #sma
+    sma_100 = df.ta.sma(length=100)
+    bbands = df.ta.bbands()
+    rsi = df.ta.rsi()
+    st_date = datetime.now() - relativedelta(years=+1)
+    en_date = datetime.now()
 
-    buy_price = []
-    sell_price = []
-    sma_signal = []
-    signal = 0
+    fig = make_subplots(rows=3, cols=1,
+                        shared_xaxes=True,
+                        row_heights = [0.6, 0.2, 0.2],
+                        subplot_titles=("Price", "Volume", "RSI"))
 
-    for i in range(len(data)):
-        if data['SMA1'][i] > data['SMA2'][i]:
-            if signal != 1:
-                buy_price.append(data['closing_price'][i])
-                sell_price.append(np.nan)
-                signal = 1
-                sma_signal.append(signal)
-            else:
-                buy_price.append(np.nan)
-                sell_price.append(np.nan)
-                sma_signal.append(0)
+    fig.add_trace(go.Scatter(x=df['date'],
+                            y=df['close'],
+                            fill='tozeroy', # fill down to xaxis
+                            name= 'price',
+                            marker_color = "rgb(66, 166, 93)"
+                            ),row=1, col=1)
 
-        elif data['SMA1'][i] < data['SMA2'][i]:
+    fig.add_trace(
+        go.Scatter(
+            x=df['date'],
+            y=sma_50,
+            line = dict(color="#e0e0e0"),
+            name = "sma_50",
+            visible='legendonly'
+        ))
 
-            if signal != -1:
-                buy_price.append(np.nan)
-                sell_price.append(data['closing_price'][i])
-                signal = -1
-                sma_signal.append(signal)
-            else:
-                buy_price.append(np.nan)
-                sell_price.append(np.nan)
-                sma_signal.append(0)
+    fig.add_trace(
+        go.Scatter(
+            x=df['date'],
+            y=sma_100,
+            line = dict(color="#e0e0e0"),
+            name = "sma_100",
+            visible='legendonly'
+        ))
 
-        else:
-            buy_price.append(np.nan)
-            sell_price.append(np.nan)
-            sma_signal.append(0)
+    fig.add_trace(
+        go.Scatter(
+            x=df['date'],
+            y=bbands['BBL_5_2.0'],
+            line = dict(color="#e0e0e0"),
+            name = "BBL",
+            visible='legendonly'
+        ))
 
-    signal_list = []
+    fig.add_trace(
+        go.Scatter(
+            x=df['date'],
+            y=bbands['BBM_5_2.0'],
+            line = dict(color="#e0e0e0"),
+            name = "BBM",
+            visible='legendonly'
+        ))
 
-    #Create DataFrames for signals - index is the date index
-    buyprice = pd.DataFrame(buy_price, columns=['buy_price'], index = data.index)
-    sellprice = pd.DataFrame(sell_price, columns=['sell_price'], index = data.index)
-    position = pd.DataFrame(sma_signal, columns=['sma_signal'], index = data.index)
+    fig.add_trace(
+        go.Scatter(
+            x=df['date'],
+            y=bbands['BBU_5_2.0'],
+            line = dict(color="#e0e0e0"),
+            name = "BBU",
+            visible='legendonly'
+        ))
 
-    signal_list.append(buyprice)
-    signal_list.append(sellprice)
+    fig.add_hline(y=df['close'].iloc[-1], line_dash="dash", line_width=0.5)
 
-    trading_signals = pd.concat(signal_list)
-    trading_signals = melt_data(trading_signals, "buy_price", "sell_price", "trading signal", "closing_price")
-    trading_signals = trading_signals.dropna()
-    return trading_signals, position
+    fig.add_trace(
+        go.Bar(
+            x=df['date'],
+            y=df['volume'],
+            name = "volume",
+            marker_color = "rgb(66, 166, 93)",
+            xperiod = "M1"
+        ),row=2, col=1)
 
-def get_return_data(agg_data, position, initial_capital):
-    """
-    """
+    fig.add_trace(
+        go.Scatter(
+            x=df['date'],
+            y=rsi,
+            name = "RSI",
+            marker_color = "rgb(66, 166, 93)"
+        ),row=3, col=1)
 
-    portfolio = pd.DataFrame(index = position.index).fillna(0.0)
-    date_fp = position[position['sma_signal'] != 0].index[0]
-    fp = agg_data['closing_price'].loc[date_fp]
-    stock_bought = math.floor((initial_capital / fp))
+    fig.update_layout(xaxis_rangeslider_visible=False,
+                      xaxis_rangeselector_font_color='white',
+                      xaxis_rangeselector_y=1.10,
+                      template = 'plotly_dark',
+                      width=800,
+                      height=600,
+                      xaxis=dict(
+                          rangeselector=dict(
+                          buttons=list([
+                          dict(count=1, label="1m", step="month", stepmode="backward" ),
+                          dict(count=6, label="6m", step="month", stepmode="backward"),
+                          dict(count=1, label="YTD", step="year", stepmode="todate"),
+                          dict(count=1, label="1y", step="year", stepmode="backward"),
+                          dict(count=5, label="5y", step="year", stepmode="backward")
+                      ]))),
+                      yaxis=dict(
+                          autorange=True,
+                          fixedrange=True,
+                      )
+                      )
 
-    portfolio['sma_signal'] = position['sma_signal']
-    portfolio['signal'] = position['sma_signal'].cumsum()
-    portfolio['stock bought'] = stock_bought * portfolio['signal']
-    portfolio['position'] = portfolio['stock bought'] * agg_data['closing_price']
-    portfolio['cash'] = initial_capital - (portfolio['sma_signal'] * agg_data['closing_price'] * stock_bought).cumsum()
-    portfolio['total'] = portfolio['position'] + portfolio['cash']
-    portfolio['strategy_return'] = portfolio['total'].pct_change()
-    portfolio['cum_strat_ret'] = ((1 + portfolio['strategy_return']).cumprod() -1)
-    portfolio['bnh_cum_ret'] = ((1 + agg_data['daily_return']).cumprod() - 1)
+    fig.update_annotations(xshift=-320)
 
-    return portfolio
+    fig.update_xaxes(
+        rangebreaks=[
+            dict(bounds=["sat", "mon"]), #hide weekends
+        ])
 
-def create_agg_chart(agg_data, comp_name):
-    """
-    Uses Altair to display the final data
-    """
-
-    #Chart Title
-    #chart_title = "Price of {co_name}".format(co_name = comp_name)
-
-    #highlight effect on the chart
-    highlight = alt.selection(type = 'single', on='mouseover', fields=['variable'], nearest=True)
-
-    #Chart1 - Displays Agg Data
-    agg_data = agg_data.reset_index()
-    c = alt.Chart(agg_data).mark_line( color = "#6EAEC6").encode(
-        x=alt.X('yearmonthdate(date):T', axis=alt.Axis(format="%Y %b", tickCount= alt.TimeIntervalStep("month", 1))),
-        y='closing_price:Q'
-    ).properties(
-    width = 600,
-    height = 300,
-    )
-
-    return c
-
-def create_volume_chart(agg_data):
-    """
-    creates the volume chart using the aggdata
-    """
-
-    c = alt.Chart(agg_data.reset_index()).mark_bar( color = "#6EAEC6").encode(
-    x=alt.X('yearmonthdate(date):T', axis=alt.Axis(format="%Y %b", tickCount= alt.TimeIntervalStep("month", 1))),
-    y='volume:Q'
-    ).properties(
-    width = 600,
-    height=100,
-    )
-    return c
-
-def create_sma_chart(signal_data, trading_signals):
-    """
-    """
-
-    #Chart 2 - Displays the SMA data
-    c2 = alt.Chart(signal_data).mark_line(opacity= 0.6).encode(
-        x=alt.X('yearmonthdate(date):T', axis=alt.Axis(format="%Y %b", tickCount= alt.TimeIntervalStep("month", 1))),
-        y='closing_price:Q',
-        color= alt.Color('SMA:N', scale=alt.Scale(
-            domain=['SMA1', 'SMA2'],
-            range=['#F29745', '#687169']
-        )))
-
-    #Chart 3.
-    c3 = alt.Chart(trading_signals).mark_circle(size = 150).encode(
-        x=alt.X('yearmonthdate(date):T', axis=alt.Axis(format="%Y %b", tickCount= alt.TimeIntervalStep("month", 1))),
-        y='closing_price:Q',
-        color= alt.Color('trading signal:N', scale=alt.Scale(
-            domain=['buy_price', 'sell_price'],
-            range =['#2F9421', '#C6866E']
-        )))
-
-    return alt.layer(c2, c3).resolve_scale(color='independent', opacity='independent')
-
-def create_return_chart(return_data):
-    """
-    """
-    c1 = alt.Chart(return_data.reset_index()).mark_line(color = "#6EAEC6").encode(
-        x=alt.X('yearmonthdate(date):T', axis=alt.Axis(format="%Y %b", tickCount= alt.TimeIntervalStep("month", 1))),
-        y=alt.Y('cum_strat_ret:Q', axis=alt.Axis(format=".0%")),
-        ).properties(
-        width = 600,
-        height=100,
-    )
-
-    c2 = alt.Chart(return_data.reset_index()).mark_line(color = "#687169").encode(
-        x=alt.X('yearmonthdate(date):T', axis=alt.Axis(format="%Y %b", tickCount= alt.TimeIntervalStep("month", 1))),
-        y=alt.Y('bnh_cum_ret:Q', axis=alt.Axis(format=".0%")),
-        ).properties(
-        width = 600,
-        height=100,
-    )
-
-    return c1+c2
+    return fig
 
 def display_webapp():
+    fr_date = (datetime.now() - relativedelta(years=+5)).strftime("%Y-%m-%d")
+    to_date = datetime.now().strftime("%Y-%m-%d")
+
     st.set_page_config(page_title="stock chart", page_icon="📈")
 
     with st.sidebar:
         #Ticker Options
         stock = st.text_input('Stock Ticker', 'AAPL')
+        agg_data = get_aggregates(stock, fr_date, to_date)
 
         try:
-            comp_name, market_cap, description, homepage_url, icon = get_ref_data(stock)
+            comp_name, market_cap, description, homepage_url, total_employees, currency, weighted_shares_outstanding = get_ref_data(stock)
         except:
             comp_name = get_ref_data(stock)
+
+        st.header(comp_name)
+        st.subheader("Market Cap: " + f"{numerize.numerize(market_cap)} " + f"{currency.upper()}")
+
+        #eps = get_financial_data(stock)
+        #st.subheader("P/E Ratio: " + f"{agg_data['close'].iloc[-1]/ eps}")
+        st.subheader("Number of Employees: " + f"{numerize.numerize(total_employees)}")
 
         try:
             with st.expander("Company Description"):
@@ -289,66 +240,30 @@ def display_webapp():
         except:
             None
 
-        st.divider()
+    st.header(f"{stock}" + " - " + str(round(agg_data['close'][-1],2)))
+    price_difference_day, price_difference_yoy, week_high, week_low = st.columns(4)
+    price_difference_day.metric(
+                    label = "Price difference (day)",
+                    value = "$" + str(round(agg_data['close'].diff(periods = 1)[-1], 2)),
+                    delta = str(round(agg_data['close'].pct_change(periods = 1)[-1]*100, 2)) + "%"
+                    )
+    price_difference_yoy.metric(
+                    label = "Price difference (YoY)",
+                    value = "$" + str(round(agg_data['close'].diff(periods = 252)[-1], 2)),
+                    delta = str(round(agg_data['close'].pct_change(periods = 252)[-1]*100, 2)) + "%"
+                    )
 
-        SMA1 = st.number_input("SMA1", value=40)
-        st.divider()
+    week_high.metric(
+                    label = "52 week high",
+                    value = "$" + str(round(agg_data['high'].tail(252).max(), 2)),
+                    )
 
-        SMA2 = st.number_input("SMA2", value=252)
-        st.divider()
+    week_low.metric(
+                    label = "52 week low",
+                    value = "$" + str(round(agg_data['low'].tail(252).min(), 2)),
+                    )
 
-    metric_container = st.container()
-    button_container = st.container()
-    chart_container = st.container()
-    
-    with button_container:
-        start_date = (datetime.now() - relativedelta(years=+5)).strftime("%Y-%m-%d")
-        end_date = datetime.now().strftime("%Y-%m-%d")
-        oneMbt, sixMbt, oneYbt, fiveYbt, blank = st.columns([0.1, 0.1, 0.1, 0.1, 0.6], gap="small")
-
-        if oneMbt.button('1M'):
-            start_date = (datetime.now() - relativedelta(months=+1)).strftime("%Y-%m-%d")
-        if sixMbt.button('6M'):
-            start_date = (datetime.now() - relativedelta(months=+6)).strftime("%Y-%m-%d")
-        if oneYbt.button('1Y'):
-            start_date = (datetime.now() - relativedelta(years=+1)).strftime("%Y-%m-%d")
-        if fiveYbt.button('5Y'):
-            start_date = (datetime.now() - relativedelta(years=+5)).strftime("%Y-%m-%d")
-
-    agg_data = get_aggregates(stock, start_date, end_date)
-
-    with metric_container:
-        st.header(stock + " - " + comp_name)
-        price, price_change = st.columns(2)
-        price.metric(label = "price", value = "$" + str(agg_data['closing_price'][-1]), delta = str(round(agg_data['daily_return'][-1] * 100, 2)) + "%")
-        price_change.metric(label = "price change", value = round(agg_data['closing_price'].diff()[-1], 2))
-        #style_metric_cards(background_color = "#808080", border_color = "#000000")
-    
-    #Strategy 1 - Simple Moving Average Strategy
-    #A. Get sma_data signals
-    sma_signals = get_sma_signals(agg_data, SMA1, SMA2)
-    sma_signals_wide = melt_data(sma_signals, "SMA1", "SMA2", "SMA", "closing_price")
-
-    #B. Generates Trading signals for the SMA strategy
-    trading_signals, position = generate_sma_trading_signals(sma_signals)
-
-    #C. Get return data
-    return_data = get_return_data(agg_data, position, 100000) #initial_capital is fixed at $100000
-
-    #3. Display Chart
-    with chart_container:
-        agg_chart = create_agg_chart(agg_data, comp_name)
-        volume_chart = create_volume_chart(agg_data)
-        return_chart = create_return_chart(return_data)
-
-        sma_chart = create_sma_chart(sma_signals_wide, trading_signals)
-        combined_chart = agg_chart + sma_chart
-        final_chart = alt.vconcat(combined_chart, volume_chart, return_chart)
-        st.altair_chart(final_chart, use_container_width=True)
-
-        st.write("Buy/Sell Signals")
-        st.dataframe(trading_signals, use_container_width=True)
-
+    st.plotly_chart(create_chart(agg_data), use_container_width=False)
     return None
 
 display_webapp()

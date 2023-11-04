@@ -229,8 +229,9 @@ def display_webapp():
             comp_name, market_cap, description, homepage_url, total_employees, currency, weighted_shares_outstanding = get_ref_data(stock)
         except:
             comp_name = get_ref_data(stock)
-
-        st.subheader("Security: " + comp_name)
+        
+        st.write("Security: " + comp_name)
+        
         try:
             st.subheader("Market Cap: " + f"{numerize.numerize(market_cap)} " + f"{currency.upper()}")
         except:

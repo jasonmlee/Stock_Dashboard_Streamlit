@@ -231,15 +231,18 @@ def display_webapp():
             comp_name = get_ref_data(stock)
         
         st.write("Security: " + comp_name)
+        st.divider()
         
         try:
             st.write("Market Cap: " + f"{numerize.numerize(market_cap)} " + f"{currency.upper()}")
+            st.divider()
         except:
             st.write("")
         #eps = get_financial_data(stock)
         #st.subheader("P/E Ratio: " + f"{agg_data['close'].iloc[-1]/ eps}")
         try:
             st.write("Number of Employees: " + f"{numerize.numerize(total_employees)}")
+            st.divider()
         except:
             st.write("")
             

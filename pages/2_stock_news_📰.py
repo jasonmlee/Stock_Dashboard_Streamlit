@@ -121,7 +121,10 @@ def display_webapp():
 
             col1.write(source)
             col2.write(title + " [link](%s)" % url)
-            col3.image(image)
+            try:
+                col3.image(image)
+            except:
+                st.write("")
             st.divider()
 
     return None

@@ -233,13 +233,13 @@ def display_webapp():
         st.write("Security: " + comp_name)
         
         try:
-            st.subheader("Market Cap: " + f"{numerize.numerize(market_cap)} " + f"{currency.upper()}")
+            st.write("Market Cap: " + f"{numerize.numerize(market_cap)} " + f"{currency.upper()}")
         except:
             st.write("")
         #eps = get_financial_data(stock)
         #st.subheader("P/E Ratio: " + f"{agg_data['close'].iloc[-1]/ eps}")
         try:
-            st.subheader("Number of Employees: " + f"{numerize.numerize(total_employees)}")
+            st.write("Number of Employees: " + f"{numerize.numerize(total_employees)}")
         except:
             st.write("")
             

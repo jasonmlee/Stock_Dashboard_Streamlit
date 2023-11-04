@@ -42,10 +42,10 @@ def get_aggregates(stock, st_date, en_date):
       vwap = a.vwap
       transactions = a.transactions
 
-      data = {'open_price': o,
-              'high_price': h,
-              'low_price': l,
-              'closing_price': c,
+      data = {'open': o,
+              'high': h,
+              'low': l,
+              'close': c,
               'volume': v,
               'vwap': vwap,
               'transactions': transactions,
@@ -56,7 +56,7 @@ def get_aggregates(stock, st_date, en_date):
 
     AggData = pd.concat(Aggs)
     AggData = AggData.set_index("date")
-    AggData['daily_return'] = AggData['closing_price'].pct_change()
+    AggData['daily_return'] = AggData['close'].pct_change()
     AggData['cumulative_ret'] = (1 + AggData['daily_return']).cumprod() - 1
 
     return AggData
